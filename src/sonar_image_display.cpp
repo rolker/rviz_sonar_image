@@ -1,5 +1,6 @@
 #include <rviz_sonar_image/sonar_image_display.h>
 #include <rviz_sonar_image/sonar_image_visual.h>
+#include <rviz_sonar_image/sonar_image_curtain.h>
 #include <rviz_sonar_image/color_map.h>
 
 namespace rviz_sonar_image
@@ -45,6 +46,15 @@ void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::Const
 
   std::vector<std::shared_ptr<SonarImageVisual> > visuals_for_ribbon;
 
+  if(curtains_.empty() ||  (!curtains_.back().empty() && curtains_.back().front()->full()))
+  {
+    curtains_.push_back(std::vector<std::shared_ptr<SonarImageCurtain> >());
+    while (curtains_.size() > curtain_length_ && !curtains_.empty())
+    {
+      curtains_.pop_front();
+    }
+  }
+
   int i = 0;
   while (i*sector_size < msg->samples_per_beam)
   {
@@ -53,6 +63,14 @@ void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::Const
     visuals_[i]->setMessage(msg, i*sector_size, (i+1)*sector_size);
     visuals_[i]->setFramePosition( position );
     visuals_[i]->setFrameOrientation( orientation );
+
+    if(curtain_beam_ >= 0 && curtain_length_ > 0)
+    {
+      if(i >= curtains_.back().size())
+        curtains_.back().push_back(std::make_shared<SonarImageCurtain>(context_->getSceneManager(), scene_node_, color_map_));
+      curtains_.back()[i]->addMessage(msg, i*sector_size, (i+1)*sector_size, curtain_beam_, position, orientation);
+    }
+
     if(ribbon_beam_ >= 0 && ribbon_length_ > 0)
     {
       visuals_for_ribbon.push_back(std::make_shared<SonarImageVisual>(context_->getSceneManager(), scene_node_, color_map_));

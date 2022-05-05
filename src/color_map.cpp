@@ -36,12 +36,13 @@ void ColorMap::setAlphaRange(float min, float max)
 Ogre::ColourValue ColorMap::lookup(float value)
 {
   if (value <= min_)
-    return map_.front();
+    return Ogre::ColourValue(1.0, 1.0, 1.0, 1.0);
+    //return map_.front();
   if (value >= max_)
     return map_.back();
 
   float p = (map_.size()-1)*(value - min_)/(max_-min_);
-  float alpha = min_alpha_ + p *(max_alpha_-min_alpha_);
+  float alpha = 1.0; //min_alpha_ + p *(max_alpha_-min_alpha_);
   int pi = floor(p);
   float p1 = p-pi;
   float p0 = 1.0-p1;
