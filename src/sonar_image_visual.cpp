@@ -79,13 +79,13 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
     at.z_angle = msg->tx_angles.front();
     at.texture_coordinate = 0.0;
     angles.push_back(at);
-    for(int i = 0; i < msg->rx_angles.size(); i++)
+    for(int i = 0; i < msg->image.num_beams; i++)
     {
       AnglesTexture at;
       at.y_angle = msg->rx_angles[i];
       at.z_angle = msg->tx_angles[i];
-      if(msg->rx_angles.size() > 1)
-        at.texture_coordinate = i/float(msg->rx_angles.size()-1);
+      if(msg->image.num_beams > 1)
+        at.texture_coordinate = i/float(msg->image.num_beams-1);
       else
         at.texture_coordinate = 0.5;
       angles.push_back(at);
@@ -157,7 +157,7 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
 
   sensor_msgs::Image::Ptr image(new sensor_msgs::Image);
   image->header.stamp = msg->header.stamp;
-  image->width = msg->rx_angles.size();
+  image->width = msg->image.num_beams;
   image->height = sample_count;
   // TODO, support other than floats
   image->encoding = "rgba8";

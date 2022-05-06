@@ -84,7 +84,7 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
 
   for (uint32_t i = start_row; i < end_row; i++)
   {
-    auto c = color_map_->lookup(sonar_data[i*msg->rx_angles.size()+beam_number]);
+    auto c = color_map_->lookup(sonar_data[i*msg->image.num_beams+beam_number]);
     auto image_row = i-start_row;
     // if (image_row == 0)
     //   c = Ogre::ColourValue(1,0,0,1);
