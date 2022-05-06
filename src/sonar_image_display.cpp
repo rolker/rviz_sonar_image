@@ -56,11 +56,13 @@ void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::Const
   }
 
   int i = 0;
-  while (i*sector_size < msg->samples_per_beam)
+  uint32_t start_row = 0;
+  while (start_row < msg->samples_per_beam)
   {
+    uint32_t end_row = std::min(start_row+sector_size, msg->samples_per_beam);
     if(i >= visuals_.size())
       visuals_.push_back(std::make_shared<SonarImageVisual>(context_->getSceneManager(), scene_node_, color_map_));
-    visuals_[i]->setMessage(msg, i*sector_size, (i+1)*sector_size);
+    visuals_[i]->setMessage(msg, start_row, end_row);
     visuals_[i]->setFramePosition( position );
     visuals_[i]->setFrameOrientation( orientation );
 
@@ -68,17 +70,18 @@ void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::Const
     {
       if(i >= curtains_.back().size())
         curtains_.back().push_back(std::make_shared<SonarImageCurtain>(context_->getSceneManager(), scene_node_, color_map_));
-      curtains_.back()[i]->addMessage(msg, i*sector_size, (i+1)*sector_size, curtain_beam_, position, orientation);
+      curtains_.back()[i]->addMessage(msg, start_row, end_row, curtain_beam_, position, orientation);
     }
 
     if(ribbon_beam_ >= 0 && ribbon_length_ > 0)
     {
       visuals_for_ribbon.push_back(std::make_shared<SonarImageVisual>(context_->getSceneManager(), scene_node_, color_map_));
-      visuals_for_ribbon.back()->setMessage(msg, i*sector_size, (i+1)*sector_size, ribbon_beam_);
+      visuals_for_ribbon.back()->setMessage(msg, start_row, end_row, ribbon_beam_);
       visuals_for_ribbon.back()->setFramePosition( position );
       visuals_for_ribbon.back()->setFrameOrientation( orientation );
     }
     i++;
+    start_row += sector_size-1;
   }
   if(!visuals_for_ribbon.empty())
     ribbon_visuals_.push_back(visuals_for_ribbon);

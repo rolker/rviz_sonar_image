@@ -23,14 +23,14 @@ SonarImageCurtain::SonarImageCurtain( Ogre::SceneManager* scene_manager, Ogre::S
   tu->setTextureFiltering(Ogre::FT_MIN, Ogre::FO_ANISOTROPIC);
   tu->setTextureFiltering(Ogre::FT_MAG, Ogre::FO_POINT);
   tu->setTextureFiltering(Ogre::FT_MIP, Ogre::FO_POINT);
-  
+  tu->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP, Ogre::TextureUnitState::TAM_CLAMP, Ogre::TextureUnitState::TAM_CLAMP);
   texture_ = new rviz::ROSImageTexture();
   if (!texture_)
   {
     ROS_ERROR("Failed to create ROSImageTextures.");
   }
 
-  mesh_shape_->setColor(1.0, 1.0, 1.0, 0.8);
+  mesh_shape_->setColor(1.0, 1.0, 1.0, 1.0);
 }
 
 SonarImageCurtain::~SonarImageCurtain()
@@ -53,16 +53,20 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
   if(!end_row>start_row)
     return;
 
-  float start_range = ((start_row+msg->sample0)*msg->ping_info.sound_speed/msg->sample_rate)/2.0;
-
+  double sample_length = (msg->ping_info.sound_speed/msg->sample_rate)/2.0;
   auto sample_count = end_row-start_row;
-  auto steps_per_beam = sample_count;
+  auto steps = sample_count;
 
-  if (steps_per_beam > max_steps)
+  if (steps > max_steps)
   {
-    step_size = sample_count/max_steps;
-    steps_per_beam /= step_size;
+    step_size = ceil(sample_count/float(max_steps));
+    steps /= step_size;
   }
+
+  // std::cerr << "step size: " << step_size << std::endl;
+  // std::cerr << "sample count: " << sample_count << std::endl;
+  // std::cerr << "sample length: " << sample_length << std::endl;
+  // std::cerr << "steps: " << steps << std::endl;
 
   if(!image_)
   {
@@ -82,7 +86,11 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
   {
     auto c = color_map_->lookup(sonar_data[i*msg->rx_angles.size()+beam_number]);
     auto image_row = i-start_row;
-    auto image_cell = &image_->data.at((image_col*max_ping_count_+image_row)*4);
+    // if (image_row == 0)
+    //   c = Ogre::ColourValue(1,0,0,1);
+    // if(i == end_row-1)
+    //   c = Ogre::ColourValue(0,1,0,1);
+    auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
     image_cell[0] = c.r*255;
     image_cell[1] = c.g*255;
     image_cell[2] = c.b*255;
@@ -92,8 +100,6 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
   texture_->addMessage(image_);
   texture_->update();
 
-  float sample_length = (step_size*msg->ping_info.sound_speed/msg->sample_rate)/2.0;
-
   auto y_angle = msg->rx_angles[beam_number];
   auto z_angle = msg->tx_angles[beam_number];
 
@@ -102,40 +108,54 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
   float siny = sin(y_angle);
   float sinz = sin(z_angle);
 
-  float startx = cosy*cosz*start_range;
-  float starty = siny*start_range;
-  float startz = sinz*start_range; 
-
   float dx = cosy*cosz*sample_length;
   float dy = siny*sample_length;
   float dz = sinz*sample_length;
 
   vertices_.resize(vertices_.size()+1);
+  // std::cerr << vertices_.size() << " pings in vertices_" << std::endl;
 
-  for(int i = 0; i < steps_per_beam; i++)
+  // std::cerr << "start row: " << start_row << " end: " << end_row << " depths: " << (msg->sample0+start_row)*dx  << ", " << (msg->sample0+end_row-1)*dx << std::endl;
+  auto i = start_row;
+  while(i < end_row)
   {
-    vertices_.back().push_back(transform.transformAffine(Ogre::Vector3(startx+i*dx, starty+i*dy, startz+i*dz)));
+    vertices_.back().push_back(transform.transformAffine(Ogre::Vector3((msg->sample0+i)*dx, (msg->sample0+i)*dy, (msg->sample0+i)*dz)));
+    if(texture_coordinates_.size() < vertices_.back().size())
+      texture_coordinates_.push_back((i-start_row)/float(end_row-start_row-1));
+    if(i != end_row-1 && i+step_size >= end_row)
+      i = end_row-1;
+    else
+      i+=step_size;
   }
+  // std::cerr << vertices_.back().size() << " vertices added" << std::endl;
+
+  // std::cerr << vertices_.size()*vertices_.front().size() << " total vertices" << std::endl;
 
   mesh_shape_->estimateVertexCount(vertices_.size()*vertices_.front().size());
   mesh_shape_->beginTriangles();
 
   for(int i = 0; i < vertices_.size(); i++)
   {
-    int c1 = i*steps_per_beam;
-    int c2 = c1 + steps_per_beam;
     float u = i/(max_ping_count_-1.0);
-    for(int j = 0; j < steps_per_beam; j++)
+    for(int j = 0; j < vertices_[i].size(); j++)
     {
       mesh_shape_->addVertex(vertices_[i][j]);
-      mesh_shape_->getManualObject()->textureCoord(u, j/float(steps_per_beam-1));
-      if(i < vertices_.size()-1 && j < steps_per_beam - 1)
-      {
-        mesh_shape_->addTriangle(c1+j, c1+j+1, c2+j+1);
-        mesh_shape_->addTriangle(c2+j+1, c2+j, c1+j);
-      }
+      mesh_shape_->getManualObject()->textureCoord(u, texture_coordinates_[j]);
     }
   }
+
+  int c1 = 0;
+  for(int i = 0; i < vertices_.size()-1; i++)
+  {
+    int c2 = c1 + vertices_[i].size();
+    for(int j = 0; j < vertices_[i].size()-1; j++)
+    {
+      mesh_shape_->addTriangle(c1+j, c1+j+1, c2+j+1);
+      mesh_shape_->addTriangle(c2+j+1, c2+j, c1+j);
+    }
+    c1 = c2;
+  }
+  // std::cerr << "last triangle index: " << c1 + vertices_.back().size()-1 << std::endl;
 
   mesh_shape_->endTriangles();
 

@@ -30,7 +30,7 @@ private:
   std::vector<std::shared_ptr<SonarImageVisual> > visuals_;
 
   std::list<std::vector<std::shared_ptr<SonarImageVisual> > > ribbon_visuals_;
-  int ribbon_length_ = 5;
+  int ribbon_length_ = 0;
   int ribbon_beam_ = 0;
 
   std::list<std::vector<std::shared_ptr<SonarImageCurtain> > > curtains_;

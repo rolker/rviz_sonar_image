@@ -53,18 +53,15 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
   if(!end_row>start_row)
     return;
 
-  float start_range = ((start_row+msg->sample0)*msg->ping_info.sound_speed/msg->sample_rate)/2.0;
-
+  double sample_length = (msg->ping_info.sound_speed/msg->sample_rate)/2.0;
   auto sample_count = end_row-start_row;
   auto steps_per_beam = sample_count;
 
   if (steps_per_beam > max_steps)
   {
-    step_size = sample_count/max_steps;
+    step_size = ceil(sample_count/float(max_steps));
     steps_per_beam /= step_size;
   }
-
-  float sample_length = (step_size*msg->ping_info.sound_speed/msg->sample_rate)/2.0;
 
   struct AnglesTexture
   {
@@ -118,6 +115,7 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
   mesh_shape_->estimateVertexCount(angles.size()*steps_per_beam);
   mesh_shape_->beginTriangles();
 
+  std::vector<int> column_sizes;
   for(auto angle: angles)
   {
     float cosy = cos(angle.y_angle);
@@ -125,29 +123,34 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
     float siny = sin(angle.y_angle);
     float sinz = sin(angle.z_angle);
 
-    float startx = cosy*cosz*start_range;
-    float starty = siny*start_range;
-    float startz = sinz*start_range; 
-
     float dx = cosy*cosz*sample_length;
     float dy = siny*sample_length;
     float dz = sinz*sample_length;
-    for(int i = 0; i < steps_per_beam; i++)
+
+    column_sizes.push_back(0);
+    auto i = start_row;
+    while(i < end_row)
     {
-      mesh_shape_->addVertex(Ogre::Vector3(startx+i*dx, starty+i*dy, startz+i*dz));
-      mesh_shape_->getManualObject()->textureCoord(angle.texture_coordinate, i/float(steps_per_beam-1));
+      column_sizes.back()++;
+      mesh_shape_->addVertex(Ogre::Vector3((msg->sample0+i)*dx, (msg->sample0+i)*dy, (msg->sample0+i)*dz));
+      mesh_shape_->getManualObject()->textureCoord(angle.texture_coordinate, (i-start_row) /float(end_row-start_row-1));
+      if(i != end_row-1 && i+step_size >= end_row)
+        i = end_row-1;
+      else
+        i+=step_size;
     }
   }
 
+  int c1 = 0;
   for(int i = 0; i < angles.size()-1; i++)
   {
-    int c1 = i*steps_per_beam;
-    int c2 = c1 + steps_per_beam;
-    for(int j = 0; j < steps_per_beam-1; j++)
+    int c2 = c1 + column_sizes[i];
+    for(int j = 0; j < column_sizes[i]-1; j++)
     {
       mesh_shape_->addTriangle(c1+j, c1+j+1, c2+j+1);
       mesh_shape_->addTriangle(c2+j+1, c2+j, c1+j);
     }
+    c1 = c2;
   }
 
   mesh_shape_->endTriangles();

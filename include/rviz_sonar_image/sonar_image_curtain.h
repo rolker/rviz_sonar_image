@@ -37,6 +37,7 @@ private:
   rviz::MeshShape* mesh_shape_;
 
   std::vector<std::vector<Ogre::Vector3> > vertices_;
+  std::vector<float> texture_coordinates_;
 
   sensor_msgs::Image::Ptr image_;
   rviz::ROSImageTexture* texture_;
