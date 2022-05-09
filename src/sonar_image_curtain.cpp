@@ -79,22 +79,46 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
     image_->data.resize(image_->step*image_->height);
   }
 
-  const float* sonar_data = reinterpret_cast<const float*>(msg->image.data.data());
-  auto image_col = vertices_.size();
 
-  for (uint32_t i = start_row; i < end_row; i++)
+  switch(msg->image.dtype)
   {
-    auto c = color_map_->lookup(sonar_data[i*msg->image.num_beams+beam_number]);
-    auto image_row = i-start_row;
-    // if (image_row == 0)
-    //   c = Ogre::ColourValue(1,0,0,1);
-    // if(i == end_row-1)
-    //   c = Ogre::ColourValue(0,1,0,1);
-    auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
-    image_cell[0] = c.r*255;
-    image_cell[1] = c.g*255;
-    image_cell[2] = c.b*255;
-    image_cell[3] = c.a*255;
+    case acoustic_msgs::SonarImageData::DTYPE_UINT16:
+    {
+      const uint16_t* sonar_data = reinterpret_cast<const uint16_t*>(msg->image.data.data());
+      auto image_col = vertices_.size();
+
+      for (uint32_t i = start_row; i < end_row; i++)
+      {
+        auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
+        auto image_row = i-start_row;
+        auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
+        image_cell[0] = c.r*255;
+        image_cell[1] = c.g*255;
+        image_cell[2] = c.b*255;
+        image_cell[3] = c.a*255;
+      }
+      break;
+    }
+    case acoustic_msgs::SonarImageData::DTYPE_FLOAT32:
+    {
+
+      const float* sonar_data = reinterpret_cast<const float*>(msg->image.data.data());
+      auto image_col = vertices_.size();
+
+      for (uint32_t i = start_row; i < end_row; i++)
+      {
+        auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
+        auto image_row = i-start_row;
+        auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
+        image_cell[0] = c.r*255;
+        image_cell[1] = c.g*255;
+        image_cell[2] = c.b*255;
+        image_cell[3] = c.a*255;
+      }
+      break;
+    }
+    default:
+      ROS_WARN_STREAM("Unimplemented type: " << msg->image.dtype);
   }
 
   texture_->addMessage(image_);
