@@ -153,17 +153,17 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
     }
     c1 = c2;
   }
-  c1 += column_sizes.back();
-  mesh_shape_->addVertex(Ogre::Vector3(0,0,0));
-  mesh_shape_->getManualObject()->textureCoord(0,0);
-  mesh_shape_->addVertex(Ogre::Vector3(10,0,0));
-  mesh_shape_->getManualObject()->textureCoord(1,0);
-  mesh_shape_->addVertex(Ogre::Vector3(10,10,0));
-  mesh_shape_->getManualObject()->textureCoord(1,1);
-  mesh_shape_->addVertex(Ogre::Vector3(0,10,0));
-  mesh_shape_->getManualObject()->textureCoord(0,1);
-  mesh_shape_->addTriangle(c1+0, c1+1, c1+2);
-  mesh_shape_->addTriangle(c1+2, c1+3, c1+0);
+  // c1 += column_sizes.back();
+  // mesh_shape_->addVertex(Ogre::Vector3(0,0,0));
+  // mesh_shape_->getManualObject()->textureCoord(0,0);
+  // mesh_shape_->addVertex(Ogre::Vector3(10,0,0));
+  // mesh_shape_->getManualObject()->textureCoord(1,0);
+  // mesh_shape_->addVertex(Ogre::Vector3(10,10,0));
+  // mesh_shape_->getManualObject()->textureCoord(1,1);
+  // mesh_shape_->addVertex(Ogre::Vector3(0,10,0));
+  // mesh_shape_->getManualObject()->textureCoord(0,1);
+  // mesh_shape_->addTriangle(c1+0, c1+1, c1+2);
+  // mesh_shape_->addTriangle(c1+2, c1+3, c1+0);
 
 
   mesh_shape_->endTriangles();
@@ -207,6 +207,7 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
       for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
       {
         auto c = color_map_->lookup(sonar_data[i]);
+        //std::cerr << sonar_data[i] << c << std::endl;
         image->data.push_back(c.r*255);
         image->data.push_back(c.g*255);
         image->data.push_back(c.b*255);

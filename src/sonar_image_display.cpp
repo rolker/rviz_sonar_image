@@ -42,10 +42,12 @@ void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::Const
     return;
   }
 
-  if(msg->image.dtype == acoustic_msgs::SonarImageData::DTYPE_FLOAT32)
+  if(msg->image.dtype == acoustic_msgs::SonarImageData::DTYPE_UINT16)
   {
     color_map_->setRange(0, 1000);
   }
+  else
+    color_map_->setRange(-80, -20);
 
   uint32_t sector_size = 4096;
 
