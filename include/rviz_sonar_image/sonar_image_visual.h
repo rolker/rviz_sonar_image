@@ -34,7 +34,7 @@ public:
 
   // if beam_number is negative, show all beams in the XY plane, otherwise
   // show selected beam in the XZ plane.
-  void setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row, int beam_number = -1);
+  void setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row);
 
   void setFramePosition( const Ogre::Vector3& position );
   void setFrameOrientation( const Ogre::Quaternion& orientation );

@@ -42,7 +42,7 @@ SonarImageVisual::~SonarImageVisual()
   scene_manager_->destroySceneNode(frame_node_);
 }
 
-void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row, int beam_number)
+void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row)
 {
   mesh_shape_->clear();
 
@@ -66,51 +66,32 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
   struct AnglesTexture
   {
     float y_angle;
-    float z_angle;
+    float x_angle;
     float texture_coordinate;
   };
 
   // beam edge at each end and all the beam centers
   std::vector<AnglesTexture> angles;
-  if(beam_number < 0)
+  AnglesTexture at;
+  at.y_angle = msg->rx_angles.front()-msg->ping_info.rx_beamwidths.front();
+  at.x_angle = msg->tx_angles.front();
+  at.texture_coordinate = 0.0;
+  angles.push_back(at);
+  for(int i = 0; i < msg->image.beam_count; i+= 10)
   {
     AnglesTexture at;
-    at.y_angle = msg->rx_angles.front()-msg->ping_info.rx_beamwidths.front();
-    at.z_angle = msg->tx_angles.front();
-    at.texture_coordinate = 0.0;
-    angles.push_back(at);
-    for(int i = 0; i < msg->image.beam_count; i++)
-    {
-      AnglesTexture at;
-      at.y_angle = msg->rx_angles[i];
-      at.z_angle = msg->tx_angles[i];
-      if(msg->image.beam_count > 1)
-        at.texture_coordinate = i/float(msg->image.beam_count-1);
-      else
-        at.texture_coordinate = 0.5;
-      angles.push_back(at);
-    }
-    at.y_angle = msg->rx_angles.back()+msg->ping_info.rx_beamwidths.back();
-    at.z_angle = msg->tx_angles.back();
-    at.texture_coordinate = 1.0;
+    at.y_angle = msg->rx_angles[i];
+    at.x_angle = msg->tx_angles[i];
+    if(msg->image.beam_count > 1)
+      at.texture_coordinate = i/float(msg->image.beam_count-1);
+    else
+      at.texture_coordinate = 0.5;
     angles.push_back(at);
   }
-  else
-  {
-    AnglesTexture at;
-    at.y_angle = msg->rx_angles[beam_number];
-    at.z_angle = msg->tx_angles[beam_number]-msg->ping_info.tx_beamwidths[beam_number];
-    at.texture_coordinate = 0.0;
-    angles.push_back(at);
-
-    at.z_angle = msg->tx_angles[beam_number];
-    at.texture_coordinate = 0.5;
-    angles.push_back(at);
-
-    at.z_angle = msg->tx_angles[beam_number]+msg->ping_info.tx_beamwidths[beam_number];
-    at.texture_coordinate = 1.0;
-    angles.push_back(at);
-  }
+  at.y_angle = msg->rx_angles.back()+msg->ping_info.rx_beamwidths.back();
+  at.x_angle = msg->tx_angles.back();
+  at.texture_coordinate = 1.0;
+  angles.push_back(at);
 
   mesh_shape_->estimateVertexCount(angles.size()*(steps_per_beam+1));
   mesh_shape_->beginTriangles();
@@ -119,13 +100,13 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
   for(auto angle: angles)
   {
     float cosy = cos(angle.y_angle);
-    float cosz = cos(angle.z_angle);
+    float cosx = cos(angle.x_angle);
     float siny = sin(angle.y_angle);
-    float sinz = sin(angle.z_angle);
+    float sinx = sin(angle.x_angle);
 
-    float dx = cosy*cosz*sample_length;
+    float dz = cosy*cosx*sample_length;
     float dy = siny*sample_length;
-    float dz = sinz*sample_length;
+    float dx = sinx*sample_length;
 
     column_sizes.push_back(0);
     auto i = start_row;
@@ -153,19 +134,6 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
     }
     c1 = c2;
   }
-  // c1 += column_sizes.back();
-  // mesh_shape_->addVertex(Ogre::Vector3(0,0,0));
-  // mesh_shape_->getManualObject()->textureCoord(0,0);
-  // mesh_shape_->addVertex(Ogre::Vector3(10,0,0));
-  // mesh_shape_->getManualObject()->textureCoord(1,0);
-  // mesh_shape_->addVertex(Ogre::Vector3(10,10,0));
-  // mesh_shape_->getManualObject()->textureCoord(1,1);
-  // mesh_shape_->addVertex(Ogre::Vector3(0,10,0));
-  // mesh_shape_->getManualObject()->textureCoord(0,1);
-  // mesh_shape_->addTriangle(c1+0, c1+1, c1+2);
-  // mesh_shape_->addTriangle(c1+2, c1+3, c1+0);
-
-
   mesh_shape_->endTriangles();
 
   sensor_msgs::Image::Ptr image(new sensor_msgs::Image);
@@ -180,24 +148,14 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
   {
     case acoustic_msgs::SonarImageData::DTYPE_UINT16:
     {
-      //image->encoding = "mono16";
-      //image->step = image->width*2;
-      // for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
-      // {
-      //   image->data.push_back(msg->image.data[2*i]);
-      //   image->data.push_back(msg->image.data[2*i+1]);
-      // }
-      for(int i = 0; i < image->width; i++)
+      const uint16_t* sonar_data = reinterpret_cast<const uint16_t*>(msg->image.data.data());
+      for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
       {
-        float g = i/float(image->width);
-        for(int j = 0; j < image->height; j++)
-        {
-          float r = j/float(image->height);
-          image->data.push_back(r*255);
-          image->data.push_back(g*255);
-          image->data.push_back(128);
-          image->data.push_back(255);
-        }
+        auto c = color_map_->lookup(sonar_data[i]);
+        image->data.push_back(c.r*255);
+        image->data.push_back(c.g*255);
+        image->data.push_back(c.b*255);
+        image->data.push_back(c.a*255);
       }
       break;
     }
@@ -207,7 +165,6 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
       for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
       {
         auto c = color_map_->lookup(sonar_data[i]);
-        //std::cerr << sonar_data[i] << c << std::endl;
         image->data.push_back(c.r*255);
         image->data.push_back(c.g*255);
         image->data.push_back(c.b*255);

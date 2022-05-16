@@ -125,16 +125,20 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
   texture_->update();
 
   auto y_angle = msg->rx_angles[beam_number];
-  auto z_angle = msg->tx_angles[beam_number];
+  std::cerr << "beam number: " << beam_number << std::endl;
+  std::cerr << "y angle: " << y_angle << std::endl;
+  std::cerr << "first and last angles " << msg->rx_angles.front() << ", " << msg->rx_angles.back() << std::endl;
+  std::cerr << "beam count: " << msg->image.beam_count << std::endl;
+  auto x_angle = msg->tx_angles[beam_number];
 
   float cosy = cos(y_angle);
-  float cosz = cos(z_angle);
+  float cosx = cos(x_angle);
   float siny = sin(y_angle);
-  float sinz = sin(z_angle);
+  float sinx = sin(x_angle);
 
-  float dx = cosy*cosz*sample_length;
+  float dz = cosy*cosx*sample_length;
   float dy = siny*sample_length;
-  float dz = sinz*sample_length;
+  float dx = sinx*sample_length;
 
   vertices_.resize(vertices_.size()+1);
   // std::cerr << vertices_.size() << " pings in vertices_" << std::endl;
