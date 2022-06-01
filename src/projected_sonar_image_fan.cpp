@@ -91,7 +91,7 @@ void ProjectedSonarImageFan::setMessage(const acoustic_msgs::ProjectedSonarImage
     {
       column_sizes.back()++;
       auto range = msg->ranges[i];
-      mesh_shape_->addVertex(Ogre::Vector3(direction.direction.x*range, direction.direction.y*range, direction.direction.z));
+      mesh_shape_->addVertex(Ogre::Vector3(direction.direction.x*range, direction.direction.y*range, direction.direction.z*range));
 
       mesh_shape_->getManualObject()->textureCoord(direction.texture_coordinate, (i-start_row) /float(end_row-start_row-1));
       if(i != end_row-1 && i+step_size >= end_row)
@@ -124,6 +124,19 @@ void ProjectedSonarImageFan::setMessage(const acoustic_msgs::ProjectedSonarImage
 
   switch(msg->image.dtype)
   {
+    case acoustic_msgs::SonarImageData::DTYPE_UINT8:
+    {
+      const uint8_t* sonar_data = reinterpret_cast<const uint8_t*>(msg->image.data.data());
+      for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
+      {
+        auto c = color_map_->lookup(sonar_data[i]);
+        image->data.push_back(c.r*255);
+        image->data.push_back(c.g*255);
+        image->data.push_back(c.b*255);
+        image->data.push_back(c.a*255);
+      }
+      break;
+    }
     case acoustic_msgs::SonarImageData::DTYPE_UINT16:
     {
       const uint16_t* sonar_data = reinterpret_cast<const uint16_t*>(msg->image.data.data());

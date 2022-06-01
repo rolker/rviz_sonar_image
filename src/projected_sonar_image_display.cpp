@@ -42,12 +42,17 @@ void ProjectedSonarImageDisplay::processMessage(const acoustic_msgs::ProjectedSo
     return;
   }
 
-  if(msg->image.dtype == acoustic_msgs::SonarImageData::DTYPE_UINT16)
+  switch(msg->image.dtype)
   {
+  case acoustic_msgs::SonarImageData::DTYPE_UINT8:
+    color_map_->setRange(0,255);
+    break;
+  case acoustic_msgs::SonarImageData::DTYPE_UINT16:
     color_map_->setRange(0, 1000);
-  }
-  else
+    break;
+  default:
     color_map_->setRange(-80, -20);
+  }
 
   uint32_t sector_size = 4096;
 
