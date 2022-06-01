@@ -1,35 +1,35 @@
-#include <rviz_sonar_image/sonar_image_display.h>
-#include <rviz_sonar_image/sonar_image_fan.h>
-#include <rviz_sonar_image/sonar_image_curtain.h>
+#include <rviz_sonar_image/projected_sonar_image_display.h>
+#include <rviz_sonar_image/projected_sonar_image_fan.h>
+#include <rviz_sonar_image/projected_sonar_image_curtain.h>
 #include <rviz_sonar_image/color_map.h>
 
 namespace rviz_sonar_image
 {
 
-SonarImageDisplay::SonarImageDisplay()
+ProjectedSonarImageDisplay::ProjectedSonarImageDisplay()
   :color_map_(std::make_shared<ColorMap>())
 {
 
 }
 
-SonarImageDisplay::~SonarImageDisplay()
+ProjectedSonarImageDisplay::~ProjectedSonarImageDisplay()
 {
 
 }
 
-void SonarImageDisplay::onInitialize()
+void ProjectedSonarImageDisplay::onInitialize()
 {
   MFDClass::onInitialize();
 
 }
 
-void SonarImageDisplay::reset()
+void ProjectedSonarImageDisplay::reset()
 {
   MFDClass::reset();
   fans_.clear();
 }
 
-void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg)
+void ProjectedSonarImageDisplay::processMessage(const acoustic_msgs::ProjectedSonarImage::ConstPtr& msg)
 {
   Ogre::Quaternion orientation;
   Ogre::Vector3 position;
@@ -51,13 +51,9 @@ void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::Const
 
   uint32_t sector_size = 4096;
 
-  if(curtain_beam_ >= 0 && curtains_.empty()) // first time?
-    if(msg->image.beam_count > 1) // only default to showing curtain for single beam
-      curtain_beam_ = -1;
-
-  if(curtain_beam_ >= 0 && (curtains_.empty() ||  (!curtains_.back().empty() && curtains_.back().front()->full())))
+  if(curtains_.empty() ||  (!curtains_.back().empty() && curtains_.back().front()->full()))
   {
-    curtains_.push_back(std::vector<std::shared_ptr<SonarImageCurtain> >());
+    curtains_.push_back(std::vector<std::shared_ptr<ProjectedSonarImageCurtain> >());
     while (curtains_.size() > curtain_length_ && !curtains_.empty())
     {
       curtains_.pop_front();
@@ -66,22 +62,22 @@ void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::Const
 
   int i = 0;
   uint32_t start_row = 0;
-  while (start_row < msg->samples_per_beam)
+  while (start_row < msg->ranges.size())
   {
-    uint32_t end_row = std::min(start_row+sector_size, msg->samples_per_beam);
+    uint32_t end_row = std::min<uint32_t>(start_row+sector_size, msg->ranges.size());
     if(i >= fans_.size())
-      fans_.push_back(std::make_shared<SonarImageFan>(context_->getSceneManager(), scene_node_, color_map_));
+      fans_.push_back(std::make_shared<ProjectedSonarImageFan>(context_->getSceneManager(), scene_node_, color_map_));
     fans_[i]->setMessage(msg, start_row, end_row);
     fans_[i]->setFramePosition( position );
     fans_[i]->setFrameOrientation( orientation );
 
-    // if(msg->image.beam_count > 0)
-    //   curtain_beam_ = msg->image.beam_count/2;
+    if(msg->image.beam_count > 0)
+      curtain_beam_ = msg->image.beam_count/2;
 
     if(curtain_beam_ >= 0 && curtain_length_ > 0)
     {
       if(i >= curtains_.back().size())
-        curtains_.back().push_back(std::make_shared<SonarImageCurtain>(context_->getSceneManager(), scene_node_, color_map_));
+        curtains_.back().push_back(std::make_shared<ProjectedSonarImageCurtain>(context_->getSceneManager(), scene_node_, color_map_));
       curtains_.back()[i]->addMessage(msg, start_row, end_row, curtain_beam_, position, orientation);
     }
     i++;
@@ -92,4 +88,4 @@ void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::Const
 } // namespace rviz_sonar_image
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(rviz_sonar_image::SonarImageDisplay, rviz::Display)
+PLUGINLIB_EXPORT_CLASS(rviz_sonar_image::ProjectedSonarImageDisplay, rviz::Display)

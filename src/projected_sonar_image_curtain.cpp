@@ -1,4 +1,4 @@
-#include <rviz_sonar_image/sonar_image_curtain.h>
+#include <rviz_sonar_image/projected_sonar_image_curtain.h>
 #include <rviz_sonar_image/color_map.h>
 
 #include <rviz/ogre_helpers/mesh_shape.h>
@@ -14,7 +14,7 @@
 namespace rviz_sonar_image
 {
 
-SonarImageCurtain::SonarImageCurtain( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, std::shared_ptr<ColorMap> color_map )
+ProjectedSonarImageCurtain::ProjectedSonarImageCurtain( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, std::shared_ptr<ColorMap> color_map )
   :color_map_(color_map)
 {
   mesh_shape_ = new rviz::MeshShape(scene_manager, parent_node);
@@ -33,13 +33,13 @@ SonarImageCurtain::SonarImageCurtain( Ogre::SceneManager* scene_manager, Ogre::S
   mesh_shape_->setColor(1.0, 1.0, 1.0, 1.0);
 }
 
-SonarImageCurtain::~SonarImageCurtain()
+ProjectedSonarImageCurtain::~ProjectedSonarImageCurtain()
 {
   delete mesh_shape_;
   delete texture_;
 }
 
-void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row, int beam_number, const Ogre::Vector3& position, const Ogre::Quaternion& orientation )
+void ProjectedSonarImageCurtain::addMessage(const acoustic_msgs::ProjectedSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row, int beam_number, const Ogre::Vector3& position, const Ogre::Quaternion& orientation )
 {
   Ogre::Matrix4 transform;
   transform.makeTransform(position, Ogre::Vector3(1, 1, 1), orientation);
@@ -48,12 +48,12 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
 
   int max_steps = 128;
   int step_size = 1;
-  start_row = std::min(start_row, msg->samples_per_beam);
-  end_row = std::min(end_row, msg->samples_per_beam);
+  start_row = std::min<uint32_t>(start_row, msg->ranges.size());
+  end_row = std::min<uint32_t>(end_row, msg->ranges.size());
   if(!end_row>start_row)
     return;
 
-  double sample_length = (msg->ping_info.sound_speed/msg->sample_rate)/2.0;
+  //double sample_length = (msg->ping_info.sound_speed/msg->sample_rate)/2.0;
   auto sample_count = end_row-start_row;
   auto steps = sample_count;
 
@@ -91,7 +91,7 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
       {
         auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
         auto image_row = i-start_row;
-        auto image_cell = &image_->data.at(image_row*image_->step + image_col*4);
+        auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
         image_cell[0] = c.r*255;
         image_cell[1] = c.g*255;
         image_cell[2] = c.b*255;
@@ -124,30 +124,14 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
   texture_->addMessage(image_);
   texture_->update();
 
-  auto y_angle = msg->rx_angles[beam_number];
-  std::cerr << "beam number: " << beam_number << std::endl;
-  std::cerr << "y angle: " << y_angle << std::endl;
-  std::cerr << "first and last angles " << msg->rx_angles.front() << ", " << msg->rx_angles.back() << std::endl;
-  std::cerr << "beam count: " << msg->image.beam_count << std::endl;
-  auto x_angle = msg->tx_angles[beam_number];
-
-  float cosy = cos(y_angle);
-  float cosx = cos(x_angle);
-  float siny = sin(y_angle);
-  float sinx = sin(x_angle);
-
-  float dz = cosy*cosx*sample_length;
-  float dy = siny*sample_length;
-  float dx = sinx*sample_length;
 
   vertices_.resize(vertices_.size()+1);
-  // std::cerr << vertices_.size() << " pings in vertices_" << std::endl;
 
-  // std::cerr << "start row: " << start_row << " end: " << end_row << " depths: " << (msg->sample0+start_row)*dx  << ", " << (msg->sample0+end_row-1)*dx << std::endl;
   auto i = start_row;
   while(i < end_row)
   {
-    vertices_.back().push_back(transform.transformAffine(Ogre::Vector3((msg->sample0+i)*dx, (msg->sample0+i)*dy, (msg->sample0+i)*dz)));
+    float range = msg->ranges[i];
+    vertices_.back().push_back(transform.transformAffine(Ogre::Vector3(msg->beam_directions[beam_number].x*range, msg->beam_directions[beam_number].y*range, msg->beam_directions[beam_number].z*range)));
     if(texture_coordinates_.size() < vertices_.back().size())
       texture_coordinates_.push_back((i-start_row)/float(end_row-start_row-1));
     if(i != end_row-1 && i+step_size >= end_row)
@@ -212,7 +196,7 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
 }
 
 
-bool SonarImageCurtain::full() const
+bool ProjectedSonarImageCurtain::full() const
 {
   return vertices_.size() >= max_ping_count_;
 }

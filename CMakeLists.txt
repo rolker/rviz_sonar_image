@@ -28,17 +28,23 @@ set(QT_LIBRARIES Qt5::Widgets)
 add_definitions(-DQT_NO_KEYWORDS)
 
 set(HDR_FILES
+  include/rviz_sonar_image/color_map.h
+  include/rviz_sonar_image/projected_sonar_image_curtain.h
+  include/rviz_sonar_image/projected_sonar_image_display.h
+  include/rviz_sonar_image/projected_sonar_image_fan.h
   include/rviz_sonar_image/sonar_image_curtain.h
   include/rviz_sonar_image/sonar_image_display.h
-  include/rviz_sonar_image/sonar_image_visual.h
-  include/rviz_sonar_image/color_map.h
+  include/rviz_sonar_image/sonar_image_fan.h
 )
 
 set(SRC_FILES
+  src/color_map.cpp
+  src/projected_sonar_image_curtain.cpp
+  src/projected_sonar_image_display.cpp
+  src/projected_sonar_image_fan.cpp
   src/sonar_image_curtain.cpp
   src/sonar_image_display.cpp
-  src/sonar_image_visual.cpp
-  src/color_map.cpp
+  src/sonar_image_fan.cpp
 )
 
 add_library(${PROJECT_NAME} ${SRC_FILES} ${HDR_FILES})

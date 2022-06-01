@@ -1,9 +1,8 @@
-#include <rviz_sonar_image/sonar_image_visual.h>
+#include <rviz_sonar_image/sonar_image_fan.h>
 #include <rviz_sonar_image/color_map.h>
 
 #include <rviz/ogre_helpers/mesh_shape.h>
 #include <rviz/image/ros_image_texture.h>
-
 
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreSceneNode.h>
@@ -14,7 +13,7 @@
 namespace rviz_sonar_image
 {
 
-SonarImageVisual::SonarImageVisual( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, std::shared_ptr<ColorMap> color_map )
+SonarImageFan::SonarImageFan( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, std::shared_ptr<ColorMap> color_map )
   :scene_manager_(scene_manager), color_map_(color_map)
 {
   frame_node_ = parent_node->createChildSceneNode();
@@ -35,14 +34,14 @@ SonarImageVisual::SonarImageVisual( Ogre::SceneManager* scene_manager, Ogre::Sce
   mesh_shape_->setColor(1.0, 1.0, 1.0, 0.8);
 }
 
-SonarImageVisual::~SonarImageVisual()
+SonarImageFan::~SonarImageFan()
 {
   delete mesh_shape_;
   delete texture_;
   scene_manager_->destroySceneNode(frame_node_);
 }
 
-void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row)
+void SonarImageFan::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row)
 {
   mesh_shape_->clear();
 
@@ -204,12 +203,12 @@ void SonarImageVisual::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& 
   unit_state->setTexture(texture_->getTexture());
 }
 
-void SonarImageVisual::setFramePosition( const Ogre::Vector3& position )
+void SonarImageFan::setFramePosition( const Ogre::Vector3& position )
 {
   frame_node_->setPosition( position );
 }
 
-void SonarImageVisual::setFrameOrientation( const Ogre::Quaternion& orientation )
+void SonarImageFan::setFrameOrientation( const Ogre::Quaternion& orientation )
 {
   frame_node_->setOrientation( orientation );
 }

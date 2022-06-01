@@ -26,11 +26,11 @@ namespace rviz_sonar_image
 {
 class ColorMap;
 
-class SonarImageVisual
+class SonarImageFan
 {
 public:
-  SonarImageVisual( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, std::shared_ptr<ColorMap> color_map);
-  ~SonarImageVisual();
+  SonarImageFan( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, std::shared_ptr<ColorMap> color_map);
+  ~SonarImageFan();
 
   // if beam_number is negative, show all beams in the XY plane, otherwise
   // show selected beam in the XZ plane.

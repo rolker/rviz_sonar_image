@@ -10,7 +10,7 @@ namespace rviz_sonar_image
 {
 
 class SonarImageCurtain;
-class SonarImageVisual;
+class SonarImageFan;
 class ColorMap;
 
 class SonarImageDisplay: public rviz::MessageFilterDisplay<acoustic_msgs::RawSonarImage>
@@ -27,7 +27,7 @@ protected:
 private:
   void processMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg) override;
 
-  std::vector<std::shared_ptr<SonarImageVisual> > visuals_;
+  std::vector<std::shared_ptr<SonarImageFan> > fans_;
 
   std::list<std::vector<std::shared_ptr<SonarImageCurtain> > > curtains_;
   int curtain_length_ = 3;
