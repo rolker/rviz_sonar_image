@@ -24,7 +24,7 @@ ProjectedSonarImageFan::ProjectedSonarImageFan( Ogre::SceneManager* scene_manage
   tu->setTextureFiltering(Ogre::FT_MIN, Ogre::FO_ANISOTROPIC);
   tu->setTextureFiltering(Ogre::FT_MAG, Ogre::FO_POINT);
   tu->setTextureFiltering(Ogre::FT_MIP, Ogre::FO_POINT);
-  
+
   texture_ = new rviz::ROSImageTexture();
   if (!texture_)
   {

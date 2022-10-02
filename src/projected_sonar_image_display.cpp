@@ -50,6 +50,11 @@ void ProjectedSonarImageDisplay::processMessage(const acoustic_msgs::ProjectedSo
   case acoustic_msgs::SonarImageData::DTYPE_UINT16:
     color_map_->setRange(0, 1000);
     break;
+  case acoustic_msgs::SonarImageData::DTYPE_UINT32:
+    color_map_->setRange(0, 4000000000);
+    break;
+  // QUESTION(lindzey): Should this at least generate a warning? In other parts
+  //    of the code, using an unsupported DTYPE is an error.
   default:
     color_map_->setRange(-80, -20);
   }
