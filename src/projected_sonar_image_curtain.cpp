@@ -116,6 +116,23 @@ void ProjectedSonarImageCurtain::addMessage(const acoustic_msgs::ProjectedSonarI
       }
       break;
     }
+    case acoustic_msgs::SonarImageData::DTYPE_UINT32:
+    {
+      const uint32_t* sonar_data = reinterpret_cast<const uint32_t*>(msg->image.data.data());
+      auto image_col = vertices_.size();
+
+      for (uint32_t i = start_row; i < end_row; i++)
+      {
+        auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
+        auto image_row = i-start_row;
+        auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
+        image_cell[0] = c.r*255;
+        image_cell[1] = c.g*255;
+        image_cell[2] = c.b*255;
+        image_cell[3] = c.a*255;
+      }
+      break;
+    }
     case acoustic_msgs::SonarImageData::DTYPE_FLOAT32:
     {
 

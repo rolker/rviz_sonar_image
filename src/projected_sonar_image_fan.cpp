@@ -150,6 +150,19 @@ void ProjectedSonarImageFan::setMessage(const acoustic_msgs::ProjectedSonarImage
       }
       break;
     }
+    case acoustic_msgs::SonarImageData::DTYPE_UINT32:
+    {
+      const uint32_t* sonar_data = reinterpret_cast<const uint32_t*>(msg->image.data.data());
+      for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
+      {
+        auto c = color_map_->lookup(sonar_data[i]);
+        image->data.push_back(c.r*255);
+        image->data.push_back(c.g*255);
+        image->data.push_back(c.b*255);
+        image->data.push_back(c.a*255);
+      }
+      break;
+    }
     case acoustic_msgs::SonarImageData::DTYPE_FLOAT32:
     {
       const float* sonar_data = reinterpret_cast<const float*>(msg->image.data.data());
