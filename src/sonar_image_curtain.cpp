@@ -30,13 +30,18 @@ SonarImageCurtain::SonarImageCurtain( Ogre::SceneManager* scene_manager, Ogre::S
     ROS_ERROR("Failed to create ROSImageTextures.");
   }
 
-  mesh_shape_->setColor(1.0, 1.0, 1.0, 1.0);
+  updateAlpha(1.0);
 }
 
 SonarImageCurtain::~SonarImageCurtain()
 {
   delete mesh_shape_;
   delete texture_;
+}
+
+void SonarImageCurtain::updateAlpha(double alpha)
+{
+  mesh_shape_->setColor(1.0, 1.0, 1.0, alpha);  
 }
 
 void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row, int beam_number, const Ogre::Vector3& position, const Ogre::Quaternion& orientation )
@@ -125,10 +130,10 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
   texture_->update();
 
   auto y_angle = msg->rx_angles[beam_number];
-  std::cerr << "beam number: " << beam_number << std::endl;
-  std::cerr << "y angle: " << y_angle << std::endl;
-  std::cerr << "first and last angles " << msg->rx_angles.front() << ", " << msg->rx_angles.back() << std::endl;
-  std::cerr << "beam count: " << msg->image.beam_count << std::endl;
+  // std::cerr << "beam number: " << beam_number << std::endl;
+  // std::cerr << "y angle: " << y_angle << std::endl;
+  // std::cerr << "first and last angles " << msg->rx_angles.front() << ", " << msg->rx_angles.back() << std::endl;
+  // std::cerr << "beam count: " << msg->image.beam_count << std::endl;
   auto x_angle = msg->tx_angles[beam_number];
 
   float cosy = cos(y_angle);

@@ -10,6 +10,12 @@ SonarImageDisplay::SonarImageDisplay()
   :color_map_(std::make_shared<ColorMap>())
 {
 
+  alpha_property_ =
+      new rviz::FloatProperty("Alpha", 1.0f, "The amount of transparency to apply to the curtain.", this,
+                        SLOT(updateAlpha()));
+  alpha_property_->setMin(0.0f);
+  alpha_property_->setMax(1.0f);
+
 }
 
 SonarImageDisplay::~SonarImageDisplay()
@@ -27,6 +33,13 @@ void SonarImageDisplay::reset()
 {
   MFDClass::reset();
   fans_.clear();
+}
+
+void SonarImageDisplay::updateAlpha()
+{
+  for(auto cv: curtains_)
+    for(auto c: cv)
+      c->updateAlpha(alpha_property_->getFloat());
 }
 
 void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg)
@@ -81,7 +94,10 @@ void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::Const
     if(curtain_beam_ >= 0 && curtain_length_ > 0)
     {
       if(i >= curtains_.back().size())
+      {
         curtains_.back().push_back(std::make_shared<SonarImageCurtain>(context_->getSceneManager(), scene_node_, color_map_));
+        updateAlpha();
+      }
       curtains_.back()[i]->addMessage(msg, start_row, end_row, curtain_beam_, position, orientation);
     }
     i++;

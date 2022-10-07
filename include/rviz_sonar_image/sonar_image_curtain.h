@@ -33,6 +33,8 @@ public:
 
   bool full() const;
 
+  void updateAlpha(double alpha);
+
 private:
   rviz::MeshShape* mesh_shape_;
 
