@@ -3,7 +3,7 @@
 
 #ifndef Q_MOC_RUN
 #include <rviz/message_filter_display.h>
-#include <acoustic_msgs/RawSonarImage.h>
+#include <marine_acoustic_msgs/RawSonarImage.h>
 #include <rviz/properties/float_property.h>
 #endif
 
@@ -14,7 +14,7 @@ class SonarImageCurtain;
 class SonarImageFan;
 class ColorMap;
 
-class SonarImageDisplay: public rviz::MessageFilterDisplay<acoustic_msgs::RawSonarImage>
+class SonarImageDisplay: public rviz::MessageFilterDisplay<marine_acoustic_msgs::RawSonarImage>
 {
 Q_OBJECT
 public:
@@ -32,7 +32,7 @@ private Q_SLOTS:
 private:
   rviz::FloatProperty* alpha_property_;
 
-  void processMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg) override;
+  void processMessage(const marine_acoustic_msgs::RawSonarImage::ConstPtr& msg) override;
 
   std::vector<std::shared_ptr<SonarImageFan> > fans_;
 

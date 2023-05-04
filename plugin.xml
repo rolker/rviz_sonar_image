@@ -3,12 +3,12 @@
         <description>
             Display RawSonarImage messages.
         </description>
-        <message_type>acoustic_msgs/RawSonarImage</message_type>
+        <message_type>marine_acoustic_msgs/RawSonarImage</message_type>
     </class>   
     <class name="rviz_sonar_image/ProjectedSonarImageDisplay" type="rviz_sonar_image::ProjectedSonarImageDisplay" base_class_type="rviz::Display">
         <description>
             Display ProjectedSonarImage messages.
         </description>
-        <message_type>acoustic_msgs/ProjectedSonarImage</message_type>
+        <message_type>marine_acoustic_msgs/ProjectedSonarImage</message_type>
     </class>   
 </library>

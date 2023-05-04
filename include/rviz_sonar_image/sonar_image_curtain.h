@@ -1,7 +1,7 @@
 #ifndef RVIZ_SONAR_IMAGE_SONAR_IMAGE_CURTAIN_H
 #define RVIZ_SONAR_IMAGE_SONAR_IMAGE_CURTAIN_H
 
-#include <acoustic_msgs/RawSonarImage.h>
+#include <marine_acoustic_msgs/RawSonarImage.h>
 #include <sensor_msgs/Image.h>
 
 namespace Ogre
@@ -29,7 +29,7 @@ public:
   SonarImageCurtain( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, std::shared_ptr<ColorMap> color_map);
   ~SonarImageCurtain();
 
-  void addMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row, int beam_number, const Ogre::Vector3& position, const Ogre::Quaternion& orientation );
+  void addMessage(const marine_acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row, int beam_number, const Ogre::Vector3& position, const Ogre::Quaternion& orientation );
 
   bool full() const;
 

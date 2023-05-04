@@ -4,7 +4,7 @@ project(rviz_sonar_image)
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  acoustic_msgs
+  marine_acoustic_msgs
   pluginlib
   roscpp
   rviz

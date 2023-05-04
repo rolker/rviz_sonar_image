@@ -44,7 +44,7 @@ void SonarImageCurtain::updateAlpha(double alpha)
   mesh_shape_->setColor(1.0, 1.0, 1.0, alpha);  
 }
 
-void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row, int beam_number, const Ogre::Vector3& position, const Ogre::Quaternion& orientation )
+void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row, int beam_number, const Ogre::Vector3& position, const Ogre::Quaternion& orientation )
 {
   Ogre::Matrix4 transform;
   transform.makeTransform(position, Ogre::Vector3(1, 1, 1), orientation);
@@ -87,7 +87,7 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
 
   switch(msg->image.dtype)
   {
-    case acoustic_msgs::SonarImageData::DTYPE_UINT16:
+    case marine_acoustic_msgs::SonarImageData::DTYPE_UINT16:
     {
       const uint16_t* sonar_data = reinterpret_cast<const uint16_t*>(msg->image.data.data());
       auto image_col = vertices_.size();
@@ -104,7 +104,7 @@ void SonarImageCurtain::addMessage(const acoustic_msgs::RawSonarImage::ConstPtr&
       }
       break;
     }
-    case acoustic_msgs::SonarImageData::DTYPE_FLOAT32:
+    case marine_acoustic_msgs::SonarImageData::DTYPE_FLOAT32:
     {
 
       const float* sonar_data = reinterpret_cast<const float*>(msg->image.data.data());

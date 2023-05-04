@@ -42,7 +42,7 @@ void SonarImageDisplay::updateAlpha()
       c->updateAlpha(alpha_property_->getFloat());
 }
 
-void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg)
+void SonarImageDisplay::processMessage(const marine_acoustic_msgs::RawSonarImage::ConstPtr& msg)
 {
   Ogre::Quaternion orientation;
   Ogre::Vector3 position;
@@ -55,7 +55,7 @@ void SonarImageDisplay::processMessage(const acoustic_msgs::RawSonarImage::Const
     return;
   }
 
-  if(msg->image.dtype == acoustic_msgs::SonarImageData::DTYPE_UINT16)
+  if(msg->image.dtype == marine_acoustic_msgs::SonarImageData::DTYPE_UINT16)
   {
     color_map_->setRange(0, 1000);
   }

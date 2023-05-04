@@ -1,7 +1,7 @@
 #ifndef RVIZ_SONAR_IMAGE_PROJECTED_SONAR_IMAGE_VISUAL_H
 #define RVIZ_SONAR_IMAGE_PROJECTED_SONAR_IMAGE_VISUAL_H
 
-#include <acoustic_msgs/ProjectedSonarImage.h>
+#include <marine_acoustic_msgs/ProjectedSonarImage.h>
 
 #include <OgreColourValue.h>
 #include <OgreMaterial.h>
@@ -34,7 +34,7 @@ public:
 
   // if beam_number is negative, show all beams in the XY plane, otherwise
   // show selected beam in the XZ plane.
-  void setMessage(const acoustic_msgs::ProjectedSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row);
+  void setMessage(const marine_acoustic_msgs::ProjectedSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row);
 
   void setFramePosition( const Ogre::Vector3& position );
   void setFrameOrientation( const Ogre::Quaternion& orientation );

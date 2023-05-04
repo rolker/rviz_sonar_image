@@ -41,7 +41,7 @@ ProjectedSonarImageFan::~ProjectedSonarImageFan()
   scene_manager_->destroySceneNode(frame_node_);
 }
 
-void ProjectedSonarImageFan::setMessage(const acoustic_msgs::ProjectedSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row)
+void ProjectedSonarImageFan::setMessage(const marine_acoustic_msgs::ProjectedSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row)
 {
   mesh_shape_->clear();
 
@@ -124,7 +124,7 @@ void ProjectedSonarImageFan::setMessage(const acoustic_msgs::ProjectedSonarImage
 
   switch(msg->image.dtype)
   {
-    case acoustic_msgs::SonarImageData::DTYPE_UINT8:
+    case marine_acoustic_msgs::SonarImageData::DTYPE_UINT8:
     {
       const uint8_t* sonar_data = reinterpret_cast<const uint8_t*>(msg->image.data.data());
       for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
@@ -137,7 +137,7 @@ void ProjectedSonarImageFan::setMessage(const acoustic_msgs::ProjectedSonarImage
       }
       break;
     }
-    case acoustic_msgs::SonarImageData::DTYPE_UINT16:
+    case marine_acoustic_msgs::SonarImageData::DTYPE_UINT16:
     {
       const uint16_t* sonar_data = reinterpret_cast<const uint16_t*>(msg->image.data.data());
       for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
@@ -150,7 +150,7 @@ void ProjectedSonarImageFan::setMessage(const acoustic_msgs::ProjectedSonarImage
       }
       break;
     }
-    case acoustic_msgs::SonarImageData::DTYPE_UINT32:
+    case marine_acoustic_msgs::SonarImageData::DTYPE_UINT32:
     {
       const uint32_t* sonar_data = reinterpret_cast<const uint32_t*>(msg->image.data.data());
       for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
@@ -163,7 +163,7 @@ void ProjectedSonarImageFan::setMessage(const acoustic_msgs::ProjectedSonarImage
       }
       break;
     }
-    case acoustic_msgs::SonarImageData::DTYPE_FLOAT32:
+    case marine_acoustic_msgs::SonarImageData::DTYPE_FLOAT32:
     {
       const float* sonar_data = reinterpret_cast<const float*>(msg->image.data.data());
       for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)

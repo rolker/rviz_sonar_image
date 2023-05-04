@@ -3,7 +3,7 @@
 
 #ifndef Q_MOC_RUN
 #include <rviz/message_filter_display.h>
-#include <acoustic_msgs/ProjectedSonarImage.h>
+#include <marine_acoustic_msgs/ProjectedSonarImage.h>
 #endif
 
 namespace rviz_sonar_image
@@ -13,7 +13,7 @@ class ProjectedSonarImageCurtain;
 class ProjectedSonarImageFan;
 class ColorMap;
 
-class ProjectedSonarImageDisplay: public rviz::MessageFilterDisplay<acoustic_msgs::ProjectedSonarImage>
+class ProjectedSonarImageDisplay: public rviz::MessageFilterDisplay<marine_acoustic_msgs::ProjectedSonarImage>
 {
 Q_OBJECT
 public:
@@ -25,7 +25,7 @@ protected:
   void reset() override;
 
 private:
-  void processMessage(const acoustic_msgs::ProjectedSonarImage::ConstPtr& msg) override;
+  void processMessage(const marine_acoustic_msgs::ProjectedSonarImage::ConstPtr& msg) override;
 
   std::vector<std::shared_ptr<ProjectedSonarImageFan> > fans_;
 

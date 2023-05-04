@@ -29,7 +29,7 @@ void ProjectedSonarImageDisplay::reset()
   fans_.clear();
 }
 
-void ProjectedSonarImageDisplay::processMessage(const acoustic_msgs::ProjectedSonarImage::ConstPtr& msg)
+void ProjectedSonarImageDisplay::processMessage(const marine_acoustic_msgs::ProjectedSonarImage::ConstPtr& msg)
 {
   Ogre::Quaternion orientation;
   Ogre::Vector3 position;
@@ -44,13 +44,13 @@ void ProjectedSonarImageDisplay::processMessage(const acoustic_msgs::ProjectedSo
 
   switch(msg->image.dtype)
   {
-  case acoustic_msgs::SonarImageData::DTYPE_UINT8:
+  case marine_acoustic_msgs::SonarImageData::DTYPE_UINT8:
     color_map_->setRange(0,255);
     break;
-  case acoustic_msgs::SonarImageData::DTYPE_UINT16:
+  case marine_acoustic_msgs::SonarImageData::DTYPE_UINT16:
     color_map_->setRange(0, 1000);
     break;
-  case acoustic_msgs::SonarImageData::DTYPE_UINT32:
+  case marine_acoustic_msgs::SonarImageData::DTYPE_UINT32:
     color_map_->setRange(0, 4000000000);
     break;
   // QUESTION(lindzey): Should this at least generate a warning? In other parts

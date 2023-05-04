@@ -9,7 +9,7 @@
   <license>BSD</license>
   
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>acoustic_msgs</depend>
+  <depend>marine_acoustic_msgs</depend>
   <depend>pluginlib</depend>
   <depend>roscpp</depend>
   <depend>rviz</depend>

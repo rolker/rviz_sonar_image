@@ -41,7 +41,7 @@ SonarImageFan::~SonarImageFan()
   scene_manager_->destroySceneNode(frame_node_);
 }
 
-void SonarImageFan::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row)
+void SonarImageFan::setMessage(const marine_acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row)
 {
   mesh_shape_->clear();
 
@@ -145,7 +145,7 @@ void SonarImageFan::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg
 
   switch(msg->image.dtype)
   {
-    case acoustic_msgs::SonarImageData::DTYPE_UINT16:
+    case marine_acoustic_msgs::SonarImageData::DTYPE_UINT16:
     {
       const uint16_t* sonar_data = reinterpret_cast<const uint16_t*>(msg->image.data.data());
       for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
@@ -158,7 +158,7 @@ void SonarImageFan::setMessage(const acoustic_msgs::RawSonarImage::ConstPtr& msg
       }
       break;
     }
-    case acoustic_msgs::SonarImageData::DTYPE_FLOAT32:
+    case marine_acoustic_msgs::SonarImageData::DTYPE_FLOAT32:
     {
       const float* sonar_data = reinterpret_cast<const float*>(msg->image.data.data());
       for (uint32_t i = start_row*image->width; i < end_row*image->width; i++)
