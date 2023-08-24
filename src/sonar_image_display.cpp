@@ -16,6 +16,14 @@ SonarImageDisplay::SonarImageDisplay()
   alpha_property_->setMin(0.0f);
   alpha_property_->setMax(1.0f);
 
+  colormap_minimum_property_ = new rviz::FloatProperty("Colormap minimum value", -80.0f, "The value representing the bottom of the color map", this, SLOT(updateColormapRange()));
+  colormap_minimum_property_->setMin(-200.0f);
+  colormap_minimum_property_->setMax(4096.0f);
+
+  colormap_maximum_property_ = new rviz::FloatProperty("Colormap maximum value", -20.0f, "The value representing the top of the color map", this, SLOT(updateColormapRange()));
+  colormap_maximum_property_->setMin(-200.0f);
+  colormap_maximum_property_->setMax(4096.0f);
+  updateColormapRange();
 }
 
 SonarImageDisplay::~SonarImageDisplay()
@@ -42,6 +50,11 @@ void SonarImageDisplay::updateAlpha()
       c->updateAlpha(alpha_property_->getFloat());
 }
 
+void SonarImageDisplay::updateColormapRange()
+{
+  color_map_->setRange(colormap_minimum_property_->getFloat(), colormap_maximum_property_->getFloat());
+}
+
 void SonarImageDisplay::processMessage(const marine_acoustic_msgs::RawSonarImage::ConstPtr& msg)
 {
   Ogre::Quaternion orientation;
@@ -55,12 +68,12 @@ void SonarImageDisplay::processMessage(const marine_acoustic_msgs::RawSonarImage
     return;
   }
 
-  if(msg->image.dtype == marine_acoustic_msgs::SonarImageData::DTYPE_UINT16)
-  {
-    color_map_->setRange(0, 1000);
-  }
-  else
-    color_map_->setRange(-80, -20);
+  // if(msg->image.dtype == marine_acoustic_msgs::SonarImageData::DTYPE_UINT16)
+  // {
+  //   color_map_->setRange(0, 1000);
+  // }
+  // else
+  //   color_map_->setRange(-80, -20);
 
   uint32_t sector_size = 4096;
 

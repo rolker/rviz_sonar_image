@@ -114,11 +114,14 @@ void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::Co
       {
         auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
         auto image_row = i-start_row;
-        auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
-        image_cell[0] = c.r*255;
-        image_cell[1] = c.g*255;
-        image_cell[2] = c.b*255;
-        image_cell[3] = c.a*255;
+        if(image_row < image_->height)
+        {
+          auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
+          image_cell[0] = c.r*255;
+          image_cell[1] = c.g*255;
+          image_cell[2] = c.b*255;
+          image_cell[3] = c.a*255;
+        }
       }
       break;
     }

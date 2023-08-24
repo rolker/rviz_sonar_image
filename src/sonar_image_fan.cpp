@@ -72,7 +72,10 @@ void SonarImageFan::setMessage(const marine_acoustic_msgs::RawSonarImage::ConstP
   // beam edge at each end and all the beam centers
   std::vector<AnglesTexture> angles;
   AnglesTexture at;
-  at.y_angle = msg->rx_angles.front()-msg->ping_info.rx_beamwidths.front();
+  if(msg->ping_info.rx_beamwidths.empty())
+    at.y_angle = msg->rx_angles.front()-0.5;
+  else
+    at.y_angle = msg->rx_angles.front()-msg->ping_info.rx_beamwidths.front();
   at.x_angle = msg->tx_angles.front();
   at.texture_coordinate = 0.0;
   angles.push_back(at);
@@ -87,7 +90,10 @@ void SonarImageFan::setMessage(const marine_acoustic_msgs::RawSonarImage::ConstP
       at.texture_coordinate = 0.5;
     angles.push_back(at);
   }
-  at.y_angle = msg->rx_angles.back()+msg->ping_info.rx_beamwidths.back();
+  if(msg->ping_info.rx_beamwidths.empty())
+    at.y_angle = msg->rx_angles.back()+0.5;
+  else
+    at.y_angle = msg->rx_angles.back()+msg->ping_info.rx_beamwidths.back();
   at.x_angle = msg->tx_angles.back();
   at.texture_coordinate = 1.0;
   angles.push_back(at);

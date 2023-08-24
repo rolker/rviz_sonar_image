@@ -28,9 +28,12 @@ protected:
 private Q_SLOTS:
 
   void updateAlpha();
+  void updateColormapRange();
 
 private:
   rviz::FloatProperty* alpha_property_;
+  rviz::FloatProperty* colormap_minimum_property_;
+  rviz::FloatProperty* colormap_maximum_property_;
 
   void processMessage(const marine_acoustic_msgs::RawSonarImage::ConstPtr& msg) override;
 
