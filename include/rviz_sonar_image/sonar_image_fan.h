@@ -1,30 +1,17 @@
 #ifndef RVIZ_SONAR_IMAGE_SONAR_IMAGE_VISUAL_H
 #define RVIZ_SONAR_IMAGE_SONAR_IMAGE_VISUAL_H
 
-#include <marine_acoustic_msgs/RawSonarImage.h>
+#include "marine_acoustic_msgs/msg/raw_sonar_image.hpp"
 
-#include <OgreColourValue.h>
-#include <OgreMaterial.h>
+#include <Ogre.h>
 
+#include "rviz_default_plugins/displays/image/ros_image_texture.hpp"
+#include "rviz_rendering/objects/mesh_shape.hpp"
 
-namespace Ogre
-{
-  class SceneManager;
-  class SceneNode;
-  class ManualObject;
-  class Vector3;
-  class Quaternion;
-}
-
-namespace rviz
-{
-  class MeshShape;
-  class ROSImageTexture;
-}
+#include "rviz_sonar_image/color_map.h"
 
 namespace rviz_sonar_image
 {
-class ColorMap;
 
 class SonarImageFan
 {
@@ -34,10 +21,12 @@ public:
 
   // if beam_number is negative, show all beams in the XY plane, otherwise
   // show selected beam in the XZ plane.
-  void setMessage(const marine_acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row);
+  void setMessage(const marine_acoustic_msgs::msg::RawSonarImage::ConstSharedPtr msg, uint32_t start_row, uint32_t end_row);
 
   void setFramePosition( const Ogre::Vector3& position );
   void setFrameOrientation( const Ogre::Quaternion& orientation );
+
+  std::pair<float,float> getDataValueRange() const { return std::make_pair(minimum_data_value_, maximum_data_value_); }
 
 private:
   Ogre::SceneNode* frame_node_;
@@ -46,11 +35,15 @@ private:
   // destroy the ``frame_node_``.
   Ogre::SceneManager* scene_manager_;
 
-  rviz::MeshShape* mesh_shape_;
+  rviz_rendering::MeshShape* mesh_shape_;
 
-  rviz::ROSImageTexture* texture_;
+  rviz_default_plugins::displays::ROSImageTexture* texture_;
   std::shared_ptr<ColorMap> color_map_;
   float alpha_ = 0.8;
+
+  float minimum_data_value_ = std::numeric_limits<float>::max();
+  float maximum_data_value_ = std::numeric_limits<float>::lowest();
+
 };
 
 } // namespace rviz_sonar_image

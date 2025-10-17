@@ -1,7 +1,8 @@
-#include <rviz_sonar_image/projected_sonar_image_display.h>
-#include <rviz_sonar_image/projected_sonar_image_fan.h>
-#include <rviz_sonar_image/projected_sonar_image_curtain.h>
-#include <rviz_sonar_image/color_map.h>
+#include "rviz_sonar_image/projected_sonar_image_display.h"
+#include "rviz_sonar_image/projected_sonar_image_fan.h"
+#include "rviz_sonar_image/projected_sonar_image_curtain.h"
+#include "rviz_sonar_image/color_map.h"
+#include "rviz_common/logging.hpp"
 
 namespace rviz_sonar_image
 {
@@ -29,7 +30,7 @@ void ProjectedSonarImageDisplay::reset()
   fans_.clear();
 }
 
-void ProjectedSonarImageDisplay::processMessage(const marine_acoustic_msgs::ProjectedSonarImage::ConstPtr& msg)
+void ProjectedSonarImageDisplay::processMessage(const marine_acoustic_msgs::msg::ProjectedSonarImage::ConstSharedPtr msg)
 {
   Ogre::Quaternion orientation;
   Ogre::Vector3 position;
@@ -37,20 +38,19 @@ void ProjectedSonarImageDisplay::processMessage(const marine_acoustic_msgs::Proj
                                                   msg->header.stamp,
                                                   position, orientation ))
   {
-    ROS_DEBUG( "Error transforming from frame '%s' to frame '%s'",
-               msg->header.frame_id.c_str(), qPrintable( fixed_frame_ ));
+    RVIZ_COMMON_LOG_DEBUG_STREAM( "Error transforming from frame " << msg->header.frame_id << " to frame " << qPrintable( fixed_frame_ ));
     return;
   }
 
   switch(msg->image.dtype)
   {
-  case marine_acoustic_msgs::SonarImageData::DTYPE_UINT8:
+  case marine_acoustic_msgs::msg::SonarImageData::DTYPE_UINT8:
     color_map_->setRange(0,255);
     break;
-  case marine_acoustic_msgs::SonarImageData::DTYPE_UINT16:
+  case marine_acoustic_msgs::msg::SonarImageData::DTYPE_UINT16:
     color_map_->setRange(0, 1000);
     break;
-  case marine_acoustic_msgs::SonarImageData::DTYPE_UINT32:
+  case marine_acoustic_msgs::msg::SonarImageData::DTYPE_UINT32:
     color_map_->setRange(0, 4000000000);
     break;
   // QUESTION(lindzey): Should this at least generate a warning? In other parts
@@ -97,5 +97,5 @@ void ProjectedSonarImageDisplay::processMessage(const marine_acoustic_msgs::Proj
 
 } // namespace rviz_sonar_image
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(rviz_sonar_image::ProjectedSonarImageDisplay, rviz::Display)
+#include <pluginlib/class_list_macros.hpp>
+PLUGINLIB_EXPORT_CLASS(rviz_sonar_image::ProjectedSonarImageDisplay, rviz_common::Display)

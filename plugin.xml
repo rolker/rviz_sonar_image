@@ -1,11 +1,11 @@
-<library path="lib/librviz_sonar_image">
-    <class name="rviz_sonar_image/SonarImageDisplay" type="rviz_sonar_image::SonarImageDisplay" base_class_type="rviz::Display">
+<library path="rviz_sonar_image">
+    <class type="rviz_sonar_image::SonarImageDisplay" base_class_type="rviz_common::Display">
         <description>
             Display RawSonarImage messages.
         </description>
         <message_type>marine_acoustic_msgs/RawSonarImage</message_type>
     </class>   
-    <class name="rviz_sonar_image/ProjectedSonarImageDisplay" type="rviz_sonar_image::ProjectedSonarImageDisplay" base_class_type="rviz::Display">
+    <class type="rviz_sonar_image::ProjectedSonarImageDisplay" base_class_type="rviz_common::Display">
         <description>
             Display ProjectedSonarImage messages.
         </description>

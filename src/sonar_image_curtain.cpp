@@ -1,15 +1,5 @@
-#include <rviz_sonar_image/sonar_image_curtain.h>
-#include <rviz_sonar_image/color_map.h>
-
-#include <rviz/ogre_helpers/mesh_shape.h>
-#include <rviz/image/ros_image_texture.h>
-
-#include <OGRE/OgreVector3.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgrePolygon.h>
-#include <OGRE/OgreManualObject.h>
-
+#include "rviz_sonar_image/sonar_image_curtain.h"
+#include "rviz_common/logging.hpp"
 
 namespace rviz_sonar_image
 {
@@ -17,17 +7,17 @@ namespace rviz_sonar_image
 SonarImageCurtain::SonarImageCurtain( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, std::shared_ptr<ColorMap> color_map )
   :color_map_(color_map)
 {
-  mesh_shape_ = new rviz::MeshShape(scene_manager, parent_node);
+  mesh_shape_ = new rviz_rendering::MeshShape(scene_manager, parent_node);
   mesh_shape_->getMaterial()->getTechnique(0)->setLightingEnabled(false);
   Ogre::TextureUnitState* tu = mesh_shape_->getMaterial()->getTechnique(0)->getPass(0)->createTextureUnitState();
   tu->setTextureFiltering(Ogre::FT_MIN, Ogre::FO_ANISOTROPIC);
   tu->setTextureFiltering(Ogre::FT_MAG, Ogre::FO_POINT);
   tu->setTextureFiltering(Ogre::FT_MIP, Ogre::FO_POINT);
   tu->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP, Ogre::TextureUnitState::TAM_CLAMP, Ogre::TextureUnitState::TAM_CLAMP);
-  texture_ = new rviz::ROSImageTexture();
+  texture_ = new rviz_default_plugins::displays::ROSImageTexture();
   if (!texture_)
   {
-    ROS_ERROR("Failed to create ROSImageTextures.");
+    RVIZ_COMMON_LOG_ERROR("Failed to create ROSImageTextures.");
   }
 
   updateAlpha(1.0);
@@ -44,7 +34,7 @@ void SonarImageCurtain::updateAlpha(double alpha)
   mesh_shape_->setColor(1.0, 1.0, 1.0, alpha);  
 }
 
-void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::ConstPtr& msg, uint32_t start_row, uint32_t end_row, int beam_number, const Ogre::Vector3& position, const Ogre::Quaternion& orientation )
+void SonarImageCurtain::addMessage(const marine_acoustic_msgs::msg::RawSonarImage::ConstSharedPtr msg, uint32_t start_row, uint32_t end_row, int beam_number, const Ogre::Vector3& position, const Ogre::Quaternion& orientation )
 {
   Ogre::Matrix4 transform;
   transform.makeTransform(position, Ogre::Vector3(1, 1, 1), orientation);
@@ -58,7 +48,10 @@ void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::Co
   if(!end_row>start_row)
     return;
 
-  double sample_length = (msg->ping_info.sound_speed/msg->sample_rate)/2.0;
+  auto sound_speed = 1500.0;
+  if(msg->ping_info.sound_speed > 0.0)
+    sound_speed = msg->ping_info.sound_speed;
+  double sample_length = (sound_speed/msg->sample_rate)/2.0;
   auto sample_count = end_row-start_row;
   auto steps = sample_count;
 
@@ -75,7 +68,7 @@ void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::Co
 
   if(!image_)
   {
-    image_ = sensor_msgs::Image::Ptr(new sensor_msgs::Image);
+    image_ = sensor_msgs::msg::Image::SharedPtr(new sensor_msgs::msg::Image);
     image_->header.stamp = msg->header.stamp;
     image_->width = max_ping_count_;
     image_->height = sample_count;
@@ -87,13 +80,15 @@ void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::Co
 
   switch(msg->image.dtype)
   {
-    case marine_acoustic_msgs::SonarImageData::DTYPE_UINT16:
+    case marine_acoustic_msgs::msg::SonarImageData::DTYPE_UINT16:
     {
       const uint16_t* sonar_data = reinterpret_cast<const uint16_t*>(msg->image.data.data());
       auto image_col = vertices_.size();
 
       for (uint32_t i = start_row; i < end_row; i++)
       {
+        minimum_data_value_ = std::min(minimum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
+        maximum_data_value_ = std::max(maximum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
         auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
         auto image_row = i-start_row;
         auto image_cell = &image_->data.at(image_row*image_->step + image_col*4);
@@ -104,7 +99,26 @@ void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::Co
       }
       break;
     }
-    case marine_acoustic_msgs::SonarImageData::DTYPE_FLOAT32:
+    case marine_acoustic_msgs::msg::SonarImageData::DTYPE_INT16:
+    {
+      const int16_t* sonar_data = reinterpret_cast<const int16_t*>(msg->image.data.data());
+      auto image_col = vertices_.size();
+
+      for (uint32_t i = start_row; i < end_row; i++)
+      {
+        minimum_data_value_ = std::min(minimum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
+        maximum_data_value_ = std::max(maximum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
+        auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
+        auto image_row = i-start_row;
+        auto image_cell = &image_->data.at(image_row*image_->step + image_col*4);
+        image_cell[0] = c.r*255;
+        image_cell[1] = c.g*255;
+        image_cell[2] = c.b*255;
+        image_cell[3] = c.a*255;
+      }
+      break;
+    }
+    case marine_acoustic_msgs::msg::SonarImageData::DTYPE_FLOAT32:
     {
 
       const float* sonar_data = reinterpret_cast<const float*>(msg->image.data.data());
@@ -112,6 +126,8 @@ void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::Co
 
       for (uint32_t i = start_row; i < end_row; i++)
       {
+        minimum_data_value_ = std::min(minimum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
+        maximum_data_value_ = std::max(maximum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
         auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
         auto image_row = i-start_row;
         if(image_row < image_->height)
@@ -126,7 +142,7 @@ void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::Co
       break;
     }
     default:
-      ROS_WARN_STREAM("Unimplemented type: " << msg->image.dtype);
+      RVIZ_COMMON_LOG_WARNING_STREAM("Unimplemented type: " << msg->image.dtype);
   }
 
   texture_->addMessage(image_);
@@ -155,7 +171,7 @@ void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::Co
   auto i = start_row;
   while(i < end_row)
   {
-    vertices_.back().push_back(transform.transformAffine(Ogre::Vector3((msg->sample0+i)*dx, (msg->sample0+i)*dy, (msg->sample0+i)*dz)));
+    vertices_.back().push_back(transform*Ogre::Vector3((msg->sample0+i)*dx, (msg->sample0+i)*dy, (msg->sample0+i)*dz));
     if(texture_coordinates_.size() < vertices_.back().size())
       texture_coordinates_.push_back((i-start_row)/float(end_row-start_row-1));
     if(i != end_row-1 && i+step_size >= end_row)
@@ -198,20 +214,20 @@ void SonarImageCurtain::addMessage(const marine_acoustic_msgs::RawSonarImage::Co
   Ogre::Pass* pass = mesh_shape_->getMaterial()->getTechnique(0)->getPass(0);
   if (!pass)
   {
-    ROS_ERROR("setMessage(): pass is NULL.");
+    RVIZ_COMMON_LOG_ERROR("setMessage(): pass is NULL.");
     return;
   }
 
   if (pass->getNumTextureUnitStates() < 1)
   {
-    ROS_ERROR("setMessage(): Number of texture unit states is less than 1.");
+    RVIZ_COMMON_LOG_ERROR("setMessage(): Number of texture unit states is less than 1.");
     return;
   }
 
   Ogre::TextureUnitState* unit_state = pass->getTextureUnitState(0);
   if (!unit_state)
   {
-    ROS_ERROR("Failed to getTextureUnitState(%d).", 0);
+    RVIZ_COMMON_LOG_ERROR("Failed to getTextureUnitState(0).");
     return;
   }
 
