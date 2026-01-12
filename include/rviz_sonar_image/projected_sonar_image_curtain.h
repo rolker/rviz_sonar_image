@@ -23,6 +23,10 @@ public:
 
   bool full() const;
 
+  void updateAlpha(double alpha);
+
+  std::pair<float,float> getDataValueRange() const { return std::make_pair(minimum_data_value_, maximum_data_value_); }
+
 private:
   rviz_rendering::MeshShape* mesh_shape_;
 
@@ -35,6 +39,9 @@ private:
 
   int max_ping_count_=4096;
   int row_count_ = 0;
+
+  float minimum_data_value_ = std::numeric_limits<float>::max();
+  float maximum_data_value_ = std::numeric_limits<float>::lowest();
 };
 
 } // namespace rviz_sonar_image

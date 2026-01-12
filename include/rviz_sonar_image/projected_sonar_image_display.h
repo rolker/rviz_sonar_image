@@ -5,6 +5,7 @@
 #include "rviz_common/message_filter_display.hpp"
 #include "marine_acoustic_msgs/msg/projected_sonar_image.hpp"
 //#endif
+#include "rviz_common/properties/float_property.hpp"
 #include "rviz_sonar_image/projected_sonar_image_fan.h"
 #include "rviz_sonar_image/projected_sonar_image_curtain.h"
 #include "rviz_sonar_image/color_map.h"
@@ -27,7 +28,20 @@ protected:
   void onInitialize() override;
   void reset() override;
 
+private slots:
+
+  void updateAlpha();
+  void updateColormapRange();
+
+
 private:
+  rviz_common::properties::FloatProperty* alpha_property_;
+  rviz_common::properties::FloatProperty* colormap_minimum_property_;
+  rviz_common::properties::FloatProperty* colormap_maximum_property_;
+
+  rviz_common::properties::FloatProperty* minimum_data_value_property_;
+  rviz_common::properties::FloatProperty* maximum_data_value_property_;
+
   void processMessage(const marine_acoustic_msgs::msg::ProjectedSonarImage::ConstSharedPtr msg) override;
 
   std::vector<std::shared_ptr<ProjectedSonarImageFan> > fans_;
@@ -37,6 +51,10 @@ private:
   int curtain_beam_ = 0;
 
   std::shared_ptr<ColorMap> color_map_;
+
+  float minimum_data_value_ = std::numeric_limits<float>::max();
+  float maximum_data_value_ = std::numeric_limits<float>::lowest();
+
 };
 
 } // namespace rviz_sonar_image

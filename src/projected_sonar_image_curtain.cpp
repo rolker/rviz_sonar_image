@@ -29,6 +29,12 @@ ProjectedSonarImageCurtain::~ProjectedSonarImageCurtain()
   delete texture_;
 }
 
+void ProjectedSonarImageCurtain::updateAlpha(double alpha)
+{
+  mesh_shape_->setColor(1.0, 1.0, 1.0, alpha);  
+}
+
+
 void ProjectedSonarImageCurtain::addMessage(const marine_acoustic_msgs::msg::ProjectedSonarImage::ConstSharedPtr msg, uint32_t start_row, uint32_t end_row, int beam_number, const Ogre::Vector3& position, const Ogre::Quaternion& orientation )
 {
   Ogre::Matrix4 transform;
@@ -79,6 +85,8 @@ void ProjectedSonarImageCurtain::addMessage(const marine_acoustic_msgs::msg::Pro
 
       for (uint32_t i = start_row; i < end_row; i++)
       {
+        minimum_data_value_ = std::min(minimum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
+        maximum_data_value_ = std::max(maximum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));        
         auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
         auto image_row = i-start_row;
         auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
@@ -96,7 +104,8 @@ void ProjectedSonarImageCurtain::addMessage(const marine_acoustic_msgs::msg::Pro
 
       for (uint32_t i = start_row; i < end_row; i++)
       {
-        auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
+        minimum_data_value_ = std::min(minimum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
+        maximum_data_value_ = std::max(maximum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));        auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
         auto image_row = i-start_row;
         auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
         image_cell[0] = c.r*255;
@@ -113,6 +122,8 @@ void ProjectedSonarImageCurtain::addMessage(const marine_acoustic_msgs::msg::Pro
 
       for (uint32_t i = start_row; i < end_row; i++)
       {
+        minimum_data_value_ = std::min(minimum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
+        maximum_data_value_ = std::max(maximum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
         auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
         auto image_row = i-start_row;
         auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
@@ -130,6 +141,8 @@ void ProjectedSonarImageCurtain::addMessage(const marine_acoustic_msgs::msg::Pro
 
       for (uint32_t i = start_row; i < end_row; i++)
       {
+        minimum_data_value_ = std::min(minimum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
+        maximum_data_value_ = std::max(maximum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
         auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
         auto image_row = i-start_row;
         auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
@@ -148,6 +161,8 @@ void ProjectedSonarImageCurtain::addMessage(const marine_acoustic_msgs::msg::Pro
 
       for (uint32_t i = start_row; i < end_row; i++)
       {
+        minimum_data_value_ = std::min(minimum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
+        maximum_data_value_ = std::max(maximum_data_value_, float(sonar_data[i*msg->image.beam_count+beam_number]));
         auto c = color_map_->lookup(sonar_data[i*msg->image.beam_count+beam_number]);
         auto image_row = i-start_row;
         auto image_cell = &image_->data.at((image_col+max_ping_count_*image_row)*4);
