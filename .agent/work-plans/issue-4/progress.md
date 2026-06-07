@@ -48,7 +48,10 @@ Closes #4. Part of rolker/unh_marine_autonomy#137.
 **CI**: copilot-pull-request-reviewer success (no build/test check on repo; built clean locally)
 
 ### Findings
-- [ ] (suggestion/defensive, Copilot R1) lookup() raw-derefs palette_ — can't be null today (set once from guaranteed built-in "thermal", never reassigned; no set_type), but a one-line guard/fallback is cheap insurance for a per-frame render-path pointer — `src/color_map.cpp:36`
+- [x] (suggestion/defensive, Copilot R1) lookup() raw-derefs palette_ — can't be null today (set once from guaranteed built-in "thermal", never reassigned; no set_type), but a one-line guard/fallback is cheap insurance for a per-frame render-path pointer — `src/color_map.cpp:36`
 
 ### False positives
 - (Copilot R1) `TransferParams params_` "may leave fields indeterminate (POD)" — `src/.../color_map.h:29`: marine_colormap::TransferParams declares in-class default member initializers for every field (min{0}, max{1}, gain{1}, contrast{1}, alpha_ramp{false}, ...), so a default-constructed params_ is fully defined. Not a POD-without-initializers; no UB.
+
+### Resolution
+- Guard added in `add3726`'s follow-up commit: `lookup()` returns opaque black if `palette_` is null. Build clean.
