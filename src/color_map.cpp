@@ -33,6 +33,12 @@ void ColorMap::setAlphaRange(float min, float max)
 
 Ogre::ColourValue ColorMap::lookup(float value)
 {
+  // palette_ is set from the guaranteed built-in "thermal" and never reassigned,
+  // so this is defensive: never crash the render loop if a lib change ever made
+  // the lookup fail -- fall back to opaque black.
+  if (palette_ == nullptr) {
+    return Ogre::ColourValue(0.0f, 0.0f, 0.0f, 1.0f);
+  }
   const marine_colormap::Rgba c = marine_colormap::lookup(value, *palette_, params_);
   return Ogre::ColourValue(c.r, c.g, c.b, c.a);
 }
