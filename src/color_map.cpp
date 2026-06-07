@@ -1,52 +1,40 @@
 #include <rviz_sonar_image/color_map.h>
 
+#include <marine_colormap/colormap.hpp>
+
 namespace rviz_sonar_image
 {
 
 ColorMap::ColorMap()
+: palette_(marine_colormap::find_palette("thermal"))
 {
-  map_.push_back(Ogre::ColourValue(0.3, 0.3, 0.3));
-  map_.push_back(Ogre::ColourValue(0.02, 0.4, 0.95));
-  map_.push_back(Ogre::ColourValue(0.13, 0.09, 0.71));
-  map_.push_back(Ogre::ColourValue(0.15, 0.65, 0.54));
-  map_.push_back(Ogre::ColourValue(0.07, 0.61, 0.41));
-  map_.push_back(Ogre::ColourValue(0.63, 0.82, 0.24));
-  map_.push_back(Ogre::ColourValue(0.99, 0.70, 0.18));
-  map_.push_back(Ogre::ColourValue(0.98, 0.37, 0.60));
-  map_.push_back(Ogre::ColourValue(0.99, 0.19, 0.38));
-  map_.push_back(Ogre::ColourValue(0.99, 0.19, 0.38));
-  map_.push_back(Ogre::ColourValue(0.86, 0.16, 0.20));
-  map_.push_back(Ogre::ColourValue(0.65, 0.20, 0.20));
-  map_.push_back(Ogre::ColourValue(0.60, 0.04, 0.06));
+  params_.min = -70.0f;
+  params_.max = 0.0f;
+  // Preserve the prior "white below the floor" sentinel.
+  params_.has_below_color = true;
+  params_.below_color = marine_colormap::Rgba{1.0f, 1.0f, 1.0f, 1.0f};
 }
 
 void ColorMap::setRange(float min, float max)
 {
-  min_ = min;
-  max_ = max;
+  params_.min = min;
+  params_.max = max;
 }
 
 void ColorMap::setAlphaRange(float min, float max)
 {
-  min_alpha_ = min;
-  max_alpha_ = max;
+  // Previously dormant (alpha was hard-coded to 1.0). Wire it to the shared
+  // transfer's alpha ramp so a caller that sets it gets a value-dependent alpha;
+  // unset, alpha stays opaque as before.
+  params_.alpha_ramp = true;
+  params_.alpha_min = min;
+  params_.alpha_max = max;
 }
-
 
 Ogre::ColourValue ColorMap::lookup(float value)
 {
-  if (value <= min_)
-    return Ogre::ColourValue(1.0, 1.0, 1.0, 1.0);
-    //return map_.front();
-  if (value >= max_)
-    return map_.back();
-
-  float p = (map_.size()-1)*(value - min_)/(max_-min_);
-  float alpha = 1.0; //min_alpha_ + p *(max_alpha_-min_alpha_);
-  int pi = floor(p);
-  float p1 = p-pi;
-  float p0 = 1.0-p1;
-  return Ogre::ColourValue(map_[pi].r*p0+map_[pi+1].r*p1, map_[pi].g*p0+map_[pi+1].g*p1, map_[pi].b*p0+map_[pi+1].b*p1, alpha);
+  const marine_colormap::Rgba c = marine_colormap::lookup(value, *palette_, params_);
+  return Ogre::ColourValue(c.r, c.g, c.b, c.a);
 }
 
 } // namespace rviz_sonar_image
